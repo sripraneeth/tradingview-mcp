@@ -9,6 +9,7 @@ from mcp.server.fastmcp import FastMCP
 from tradingview_mcp.tools.crypto import register_crypto_tools
 from tradingview_mcp.tools.futures import register_futures_tools
 from tradingview_mcp.tools.indices import register_indices_tools
+from tradingview_mcp.tools.realtime import register_realtime_tools
 from tradingview_mcp.tools.stocks import register_stocks_tools
 
 
@@ -26,6 +27,7 @@ def _register_all_tools() -> None:
     register_stocks_tools(mcp)
     register_futures_tools(mcp)
     register_indices_tools(mcp)
+    register_realtime_tools(mcp)
 
 
 _register_all_tools()

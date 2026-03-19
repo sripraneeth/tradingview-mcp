@@ -9,6 +9,7 @@ dependencies = [
   "tradingview-screener>=0.6.4",
   "tradingview-ta>=3.3.0",
   "finnhub-python>=2.4.0",
+  "websocket-client>=1.6.0",
 ]
 
 [project.scripts]
