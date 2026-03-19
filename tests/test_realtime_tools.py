@@ -33,9 +33,18 @@ class TestRealtimeBars:
         realtime.register_realtime_tools(self.mcp)
         self.tool = self.mcp.tools["realtime_bars"]
 
-    def test_returns_error_without_session_id(self) -> None:
+    @patch("tradingview_mcp.tools.realtime.get_provider")
+    def test_allows_empty_session_id(self, mock_get_provider) -> None:
+        fake_bars = [
+            {"timestamp": 1000, "open": 100, "high": 110, "low": 90, "close": 105, "volume": 500},
+        ]
+        mock_provider = MagicMock()
+        mock_provider.get_bars.return_value = fake_bars
+        mock_get_provider.return_value = mock_provider
+
         result = self.tool(symbol="ES1!", exchange="CME_MINI", timeframe="15m", count=100, tv_session_id="")
-        assert "error" in result
+        assert "error" not in result
+        assert result["bar_count"] == 1
 
     @patch("tradingview_mcp.tools.realtime.get_provider")
     def test_returns_bars_on_success(self, mock_get_provider) -> None:
@@ -70,9 +79,21 @@ class TestRealtimeLevels:
         realtime.register_realtime_tools(self.mcp)
         self.tool = self.mcp.tools["realtime_levels"]
 
-    def test_returns_error_without_session_id(self) -> None:
+    @patch("tradingview_mcp.tools.realtime.get_provider")
+    def test_allows_empty_session_id(self, mock_get_provider) -> None:
+        fake_levels = {
+            "prior_day_high": 6695.0,
+            "session_vwap": 6680.0,
+            "symbol": "CME_MINI:ES1!",
+            "bar_count": 50,
+        }
+        mock_provider = MagicMock()
+        mock_provider.get_session_levels.return_value = fake_levels
+        mock_get_provider.return_value = mock_provider
+
         result = self.tool(symbol="ES1!", exchange="CME_MINI", timeframe="30m", tv_session_id="")
-        assert "error" in result
+        assert "error" not in result
+        assert result["prior_day_high"] == 6695.0
 
     @patch("tradingview_mcp.tools.realtime.get_provider")
     def test_returns_levels_on_success(self, mock_get_provider) -> None:
@@ -106,9 +127,26 @@ class TestRealtimeAnalysis:
         realtime.register_realtime_tools(self.mcp)
         self.tool = self.mcp.tools["realtime_analysis"]
 
-    def test_returns_error_without_session_id(self) -> None:
+    @patch("tradingview_mcp.tools.realtime.get_provider")
+    def test_allows_empty_session_id(self, mock_get_provider) -> None:
+        fake_bars = []
+        for i in range(30):
+            fake_bars.append({
+                "timestamp": 1000 + i * 900,
+                "open": 100 + i * 0.5,
+                "high": 102 + i * 0.5,
+                "low": 98 + i * 0.5,
+                "close": 101 + i * 0.5,
+                "volume": 1000 + i * 10,
+            })
+
+        mock_provider = MagicMock()
+        mock_provider.get_bars.return_value = fake_bars
+        mock_get_provider.return_value = mock_provider
+
         result = self.tool(symbol="ES1!", exchange="CME_MINI", timeframe="15m", tv_session_id="")
-        assert "error" in result
+        assert "error" not in result
+        assert "analysis" in result
 
     @patch("tradingview_mcp.tools.realtime.get_provider")
     def test_returns_analysis_on_success(self, mock_get_provider) -> None:

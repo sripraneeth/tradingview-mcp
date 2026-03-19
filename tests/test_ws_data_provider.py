@@ -78,16 +78,32 @@ class TestWSDataProvider:
         assert len(result) == 1
 
     @patch("tradingview_mcp.core.services.ws_data_provider.extract_auth_token")
-    def test_get_bars_returns_error_dict_on_auth_failure(self, mock_auth) -> None:
+    def test_get_bars_falls_back_to_anonymous_on_auth_failure(self, mock_auth) -> None:
         mock_auth.return_value = None
-
         provider = WSDataProvider()
-        provider._client = MagicMock()
-        provider._client.connected = False
+        mock_client = MagicMock()
+        mock_client.connected = False
+        mock_client.get_series.return_value = [
+            {"timestamp": 1000, "open": 100, "high": 110, "low": 90, "close": 105, "volume": 500}
+        ]
+        provider._client = mock_client
 
         result = provider.get_bars("ES1!", "CME_MINI", "15m", count=100, session_id="bad_sess")
-        assert isinstance(result, dict)
-        assert "error" in result
+        assert isinstance(result, list)
+        mock_client.connect.assert_called_once_with(auth_token="unauthorized_user_token")
+
+    def test_get_bars_allows_empty_session_id_in_anonymous_mode(self) -> None:
+        provider = WSDataProvider()
+        mock_client = MagicMock()
+        mock_client.connected = False
+        mock_client.get_series.return_value = [
+            {"timestamp": 1000, "open": 100, "high": 110, "low": 90, "close": 105, "volume": 500}
+        ]
+        provider._client = mock_client
+
+        result = provider.get_bars("ES1!", "CME_MINI", "15m", count=100, session_id="")
+        assert isinstance(result, list)
+        mock_client.connect.assert_called_once_with(auth_token="unauthorized_user_token")
 
     def test_get_session_levels_delegates_to_level_calc(self) -> None:
         provider = WSDataProvider()

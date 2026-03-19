@@ -10,16 +10,6 @@ from typing import Any, Dict, List, Optional, Union
 from tradingview_mcp.core.services.ws_data_provider import get_provider
 
 
-def _validate_session(tv_session_id: str) -> Optional[Dict[str, str]]:
-    """Return error dict if session ID is missing, else None."""
-    if not tv_session_id.strip():
-        return {
-            "error": "tv_session_id is required for realtime tools. "
-            "Get it from your browser cookies (TradingView sessionid)."
-        }
-    return None
-
-
 def _format_symbol(symbol: str, exchange: str) -> str:
     """Format symbol with exchange prefix."""
     sym = (symbol or "").strip().upper()
@@ -93,7 +83,7 @@ def _compute_macd(
 
 def _compute_bollinger(
     closes: List[float], period: int = 20, std_dev: float = 2.0
-) -> Optional[Dict[str, float]]:
+) -> Optional[Dict[str, Optional[float]]]:
     """Compute Bollinger Bands."""
     if len(closes) < period:
         return None
@@ -143,12 +133,9 @@ def register_realtime_tools(mcp: Any) -> None:
             exchange: Exchange name (default CME_MINI)
             timeframe: One of 5m, 15m, 1h, 4h, 1D, 1W, 1M
             count: Number of bars (default 100, max 5000)
-            tv_session_id: TradingView session cookie (required)
+            tv_session_id: Optional TradingView session cookie.
+                If omitted, anonymous mode is used.
         """
-        err = _validate_session(tv_session_id)
-        if err:
-            return err
-
         count_clamped = max(1, min(int(count), 5000))
         provider = get_provider()
         result = provider.get_bars(
@@ -187,12 +174,9 @@ def register_realtime_tools(mcp: Any) -> None:
             symbol: Trading symbol (e.g., "ES1!", "NQ1!")
             exchange: Exchange name (default CME_MINI)
             timeframe: Timeframe for bar data (default 30m)
-            tv_session_id: TradingView session cookie (required)
+            tv_session_id: Optional TradingView session cookie.
+                If omitted, anonymous mode is used.
         """
-        err = _validate_session(tv_session_id)
-        if err:
-            return err
-
         provider = get_provider()
         return provider.get_session_levels(
             symbol=symbol,
@@ -217,12 +201,9 @@ def register_realtime_tools(mcp: Any) -> None:
             symbol: Trading symbol (e.g., "ES1!", "NQ1!", "BTCUSDT")
             exchange: Exchange name (default CME_MINI)
             timeframe: One of 5m, 15m, 1h, 4h, 1D, 1W, 1M
-            tv_session_id: TradingView session cookie (required)
+            tv_session_id: Optional TradingView session cookie.
+                If omitted, anonymous mode is used.
         """
-        err = _validate_session(tv_session_id)
-        if err:
-            return err
-
         provider = get_provider()
         bars_result = provider.get_bars(
             symbol=symbol,

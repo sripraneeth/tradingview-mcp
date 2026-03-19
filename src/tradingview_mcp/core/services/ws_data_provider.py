@@ -45,12 +45,18 @@ class WSDataProvider:
             return None
 
         sid = get_session_id(session_id)
-        if not sid:
-            return "tv_session_id is required for realtime tools. Get it from your browser cookies."
-
-        auth_token = extract_auth_token(sid)
-        if not auth_token:
-            return "TradingView session expired. Please provide a fresh sessionid cookie."
+        auth_token = "unauthorized_user_token"
+        if sid:
+            extracted = extract_auth_token(sid)
+            if extracted:
+                auth_token = extracted
+            else:
+                logger.warning(
+                    "Could not extract TradingView auth token from provided session. "
+                    "Falling back to anonymous mode."
+                )
+        else:
+            logger.info("No TradingView session provided. Using anonymous mode.")
 
         try:
             self._client.connect(auth_token=auth_token)
