@@ -1,5 +1,5 @@
 {
-  "name": "@atilaahmettaner/tradingview-mcp",
+  "name": "@sripraneeth/tradingview-mcp",
   "version": "1.0.0",
   "description": "TradingView Bollinger Band MCP Server - Advanced crypto screener with candle pattern analysis",
   "type": "module",
@@ -25,12 +25,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/atilaahmettaner/tradingview-mcp.git"
+    "url": "https://github.com/sripraneeth/tradingview-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/atilaahmettaner/tradingview-mcp/issues"
+    "url": "https://github.com/sripraneeth/tradingview-mcp/issues"
   },
-  "homepage": "https://github.com/atilaahmettaner/tradingview-mcp#readme",
+  "homepage": "https://github.com/sripraneeth/tradingview-mcp#readme",
   "mcp": {
     "description": "Advanced TradingView crypto screener with Bollinger Band analysis and candle pattern detection",
     "tools": [

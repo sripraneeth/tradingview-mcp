@@ -49,7 +49,7 @@ https://github-production-user-asset-6210df.s3.amazonaws.com/67838093/478689497-
          "command": "uv",
          "args": [
            "tool", "run", "--from",
-           "git+https://github.com/atilaahmettaner/tradingview-mcp.git",
+           "git+https://github.com/sripraneeth/tradingview-mcp.git",
            "tradingview-mcp"
          ]
        }
@@ -65,7 +65,7 @@ https://github-production-user-asset-6210df.s3.amazonaws.com/67838093/478689497-
 
 ```bash
 # Clone the repository
-git clone https://github.com/atilaahmettaner/tradingview-mcp.git
+git clone https://github.com/sripraneeth/tradingview-mcp.git
 cd tradingview-mcp
 
 # Install dependencies
@@ -121,7 +121,7 @@ News tools require a Finnhub API key.
       "command": "uv",
       "args": [
         "tool", "run", "--from",
-        "git+https://github.com/atilaahmettaner/tradingview-mcp.git",
+        "git+https://github.com/sripraneeth/tradingview-mcp.git",
         "tradingview-mcp"
       ],
       "env": {
@@ -324,7 +324,7 @@ Use `exchanges://list` to retrieve the currently available exchange universe in 
 ### Running in Development Mode:
 ```bash
 # Clone and setup
-git clone https://github.com/atilaahmettaner/tradingview-mcp.git
+git clone https://github.com/sripraneeth/tradingview-mcp.git
 cd tradingview-mcp
 uv sync
 
@@ -361,7 +361,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🐛 Support & Issues
 
-- **Report bugs**: [GitHub Issues](https://github.com/atilaahmettaner/tradingview-mcp/issues)
+- **Report bugs**: [GitHub Issues](https://github.com/sripraneeth/tradingview-mcp/issues)
 - **Feature requests**: Open an issue with the "enhancement" label
 - **Questions**: Check existing issues or open a new discussion
 
