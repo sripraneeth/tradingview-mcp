@@ -26,6 +26,7 @@ def fetch_screener_indicators(
     limit: Optional[int] = None,
     timeframe: Optional[str] = None,
     cookies=None,
+    market: str = 'crypto',
 ) -> List[Dict[str, Any]]:
     """
     Fetch indicator columns via TradingView-Screener.
@@ -48,7 +49,6 @@ def fetch_screener_indicators(
     except Exception as e:
         raise ImportError("tradingview-screener is not installed. Please add it to requirements.txt and install.") from e
 
-    market = 'crypto'
     base_cols = ['open', 'close', 'SMA20', 'BB.upper', 'BB.lower', 'EMA50', 'RSI', 'volume']
 
     suffix = _tf_to_tv_resolution(timeframe)
@@ -102,6 +102,7 @@ def fetch_screener_multi_changes(
     base_timeframe: str = '4h',
     limit: Optional[int] = None,
     cookies=None,
+    market: str = 'crypto',
 ) -> List[Dict[str, Any]]:
     """
     Fetch multi-timeframe open/close to compute percentage changes per timeframe,
@@ -160,7 +161,7 @@ def fetch_screener_multi_changes(
         if c not in seen:
             cols.append(c); seen.add(c)
 
-    q = Query().set_markets('crypto').select(*cols)
+    q = Query().set_markets(market).select(*cols)
 
     exchange_code = (exchange or '').upper()
     if symbols:

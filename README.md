@@ -16,6 +16,7 @@ https://github-production-user-asset-6210df.s3.amazonaws.com/67838093/478689497-
 - 🎯 **Bollinger Band Intelligence**: Proprietary rating system (-3 to +3) for squeeze detection
 - 🕯️ **Pattern Recognition**: Detect consecutive bullish/bearish candle formations
 - 💎 **Multi-Market Support**: Crypto exchanges (KuCoin, Binance, Bybit) + Traditional markets (NASDAQ, BIST)
+- 📰 **News Intelligence**: Market and ticker-level news sentiment (Finnhub-powered)
 - ⏰ **Multi-Timeframe Analysis**: From 5-minute to monthly charts
 - 🔍 **Individual Asset Deep-Dive**: Comprehensive technical analysis for any symbol
 
@@ -105,22 +106,95 @@ uv sync
 }
 ```
 
+### Optional: Enable News Tools (Finnhub)
+
+News tools require a Finnhub API key.
+
+1. Create a free API key from [finnhub.io](https://finnhub.io/)
+2. Set `FINNHUB_API_KEY` in your environment or MCP config
+
+**Claude Desktop config example:**
+```json
+{
+  "mcpServers": {
+    "tradingview-mcp": {
+      "command": "uv",
+      "args": [
+        "tool", "run", "--from",
+        "git+https://github.com/atilaahmettaner/tradingview-mcp.git",
+        "tradingview-mcp"
+      ],
+      "env": {
+        "FINNHUB_API_KEY": "your_finnhub_api_key_here"
+      }
+    }
+  }
+}
+```
+
+If `FINNHUB_API_KEY` is missing, news tools return a structured configuration error.
+
 ## 🛠️ Available Tools
 
-### 📈 Market Screening
-| Tool | Description | Example Usage |
-|------|-------------|---------------|
-| `top_gainers` | Find highest performing assets | Top crypto gainers in 15m |
-| `top_losers` | Find biggest declining assets | Worst performing stocks today |
-| `bollinger_scan` | Find assets with tight Bollinger Bands | Coins ready for breakout |
-| `rating_filter` | Filter by Bollinger Band rating | Strong buy signals (rating +2) |
+Tool naming now follows market-prefixed groups:
 
-### 🔍 Technical Analysis  
+- `crypto_*`
+- `stocks_*`
+- `futures_*`
+- `indices_*`
+- `news_*`
+
+> ✅ **Backward compatibility:** legacy unprefixed aliases (like `top_gainers`, `coin_analysis`, `bollinger_scan`) still work and map to the corresponding `crypto_*` tools.
+
+### 💰 Crypto Tools
 | Tool | Description | Example Usage |
 |------|-------------|---------------|
-| `coin_analysis` | Complete technical analysis | Analyze BTC with all indicators |
-| `consecutive_candles_scan` | Find candlestick patterns | 3+ consecutive green candles |
-| `advanced_candle_pattern` | Multi-timeframe pattern analysis | Complex pattern detection |
+| `crypto_top_gainers` | Find highest-performing crypto symbols | Top KuCoin gainers in 15m |
+| `crypto_top_losers` | Find biggest crypto decliners | Biggest Binance losers today |
+| `crypto_bollinger_scan` | Find low-BBW squeeze setups | Coins ready for breakout |
+| `crypto_rating_filter` | Filter by Bollinger rating | Strong buy signals (+2) |
+| `crypto_analysis` | Full technical analysis for one symbol | Analyze BTCUSDT on BYBIT |
+| `crypto_consecutive_candles_scan` | Consecutive bullish/bearish candle scan | 3 bullish candles on KUCOIN |
+| `crypto_advanced_candle_pattern` | Multi-timeframe candle structure scan | Progressive candle growth scan |
+| `crypto_volume_breakout_scanner` | Volume + price breakout scanner | High-volume movers |
+| `crypto_volume_confirmation_analysis` | Volume confirmation for one symbol | Validate BTC move with volume |
+| `crypto_smart_volume_scanner` | Volume + RSI + move combined filter | Oversold high-volume opportunities |
+
+### 📈 Stocks Tools
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `stocks_top_gainers` | Top stock gainers | NASDAQ leaders in 15m |
+| `stocks_top_losers` | Top stock losers | NYSE decliners today |
+| `stocks_bollinger_scan` | Stock squeeze scanner | Low-BBW US equities |
+| `stocks_analysis` | Full stock analysis | Analyze AAPL on NASDAQ |
+| `stocks_volume_breakout` | Stock volume breakout scan | Volume-backed breakouts on TSX |
+| `stocks_smart_scanner` | Volume + RSI stock scan | Oversold high-volume names |
+| `stocks_levels` | Pivot/support/resistance levels | Key levels for SPY ETF |
+
+### 📉 Futures Tools
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `futures_analysis` | Full futures symbol analysis | Analyze ES1! on CME_MINI |
+| `futures_top_gainers` | Top futures gainers | CME movers in 15m |
+| `futures_top_losers` | Top futures losers | CBOT decliners |
+| `futures_volume_breakout` | Futures volume-backed breakout scan | Strong volume moves on CME |
+| `futures_levels` | Pivot/support/resistance levels | Levels for NQ1! |
+| `futures_orb_predictor` | Opening range breakout levels | ORB for CL1! |
+
+### 🌍 Indices Tools
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `indices_analysis` | Full index analysis | Analyze SPX on CBOE |
+| `indices_bollinger_scan` | Index squeeze scanner | Low-BBW indices |
+| `indices_rating_filter` | Filter indices by rating | Rating +2 indices on CBOE |
+| `indices_levels` | Pivot/support/resistance levels | Levels for VIX |
+
+### 📰 News Tools
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `news_market_sentiment` | Market/category news + sentiment summary | General market sentiment snapshot |
+| `news_ticker_impact` | Ticker-specific news impact and sentiment | Impact check for AAPL |
+| `news_breaking` | Latest breaking news + sentiment summary | Latest market headlines |
 
 ### 📋 Information
 | Tool | Description |
@@ -146,11 +220,27 @@ uv sync
 "Analyze IBM stock on NYSE with technical indicators"
 ```
 
+**Stocks / ETFs / Futures / Indices:**
+```
+"Use stocks_top_gainers for NASDAQ in 15m"
+"Analyze SPY ETF on AMEX using stocks_analysis"
+"Run futures_analysis for ES1! on CME_MINI, timeframe 15m"
+"Get indices_levels for SPX on CBOE"
+"Find TSX stocks with low BBW using stocks_bollinger_scan"
+```
+
 **Pattern Recognition:**
 ```
 "Find coins with 3 consecutive bullish candles on Bybit"
 "Scan for stocks showing growing candle patterns"
 "Which assets have tight Bollinger Bands ready for breakout?"
+```
+
+**News & Sentiment:**
+```
+"Use news_breaking with limit 10"
+"Get news_market_sentiment for category general"
+"Check news_ticker_impact for TSLA with limit 15"
 ```
 
 **Advanced Queries:**
@@ -179,22 +269,16 @@ Our proprietary rating system helps identify trading opportunities:
 
 ## 🏢 Supported Markets & Exchanges
 
-### 💰 Cryptocurrency Exchanges
-- **KuCoin** (KUCOIN) - Primary recommendation
-- **Binance** (BINANCE) - Largest crypto exchange  
-- **Bybit** (BYBIT) - Derivatives focused
-- **Bitget** (BITGET) - Fast-growing global exchange
-- **OKX** (OKX) - Global crypto exchange
-- **Coinbase** (COINBASE) - US-regulated exchange
-- **Gate.io** (GATEIO) - Altcoin specialist
-- **Huobi** (HUOBI) - Asian market leader
-- **Bitfinex** (BITFINEX) - Professional trading
+| Market Type | Exchanges / Identifiers |
+|-------------|--------------------------|
+| Crypto | `KUCOIN`, `BINANCE`, `BYBIT`, `BITGET`, `OKX`, `COINBASE`, `GATEIO`, `HUOBI`, `BITFINEX`, `KRAKEN`, `BITSTAMP` |
+| US Equities / ETFs | `NASDAQ`, `NYSE`, `AMEX` |
+| Canada Equities | `TSX` |
+| Europe / Turkey / APAC | `BIST`, `BURSA`, `MYX`, `KLSE`, `ACE`, `LEAP`, `HKEX`, `HK`, `HSI` |
+| Futures / Derivatives | `CME_MINI`, `CME`, `CBOT`, `CBOE` |
+| Index / Macro Feeds | `SP`, `TVC` |
 
-### 📊 Traditional Markets
-- **NASDAQ** (NASDAQ) - US tech stocks (AAPL, MSFT, TSLA)
-- **NYSE** (NYSE) - New York Stock Exchange (IBM, GE, JPM)
-- **BIST** (BIST) - Turkish stock market (Borsa İstanbul)
-- More markets coming soon!
+Use `exchanges://list` to retrieve the currently available exchange universe in your runtime.
 
 ### ⏰ Supported Timeframes
 `5m`, `15m`, `1h`, `4h`, `1D`, `1W`, `1M`

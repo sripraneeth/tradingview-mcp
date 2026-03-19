@@ -8,6 +8,7 @@ dependencies = [
   "mcp[cli]>=1.12.0",
   "tradingview-screener>=0.6.4",
   "tradingview-ta>=3.3.0",
+  "finnhub-python>=2.4.0",
 ]
 
 [project.scripts]
@@ -21,7 +22,9 @@ where = ["src"]
 tradingview_mcp = ["coinlist/*.txt"]
 
 [tool.uv]
-dev-dependencies = []
+dev-dependencies = [
+  "pytest>=8.0.0",
+]
 package = true
 
 [build-system]

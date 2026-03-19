@@ -1,0 +1,28 @@
+{
+  "session_id": "ses_iulpsd55",
+  "browser_session_id": "ses_0sl4mukc",
+  "request": "noop",
+  "created_at": 1773878868115,
+  "updated_at": 1773878868283,
+  "branches": {
+    "b1": {
+      "id": "b1",
+      "scope": "noop",
+      "status": "exploring",
+      "questions": [
+        {
+          "id": "q_uqmj12m6",
+          "type": "ask_text",
+          "text": "noop",
+          "config": {
+            "question": "noop"
+          }
+        }
+      ],
+      "finding": null
+    }
+  },
+  "branch_order": [
+    "b1"
+  ]
+}

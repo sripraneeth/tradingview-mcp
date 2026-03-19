@@ -27,6 +27,46 @@ EXCHANGE_SCREENER = {
     "hk": "hongkong",       # Hong Kong (alternate)
     "hsi": "hongkong",      # Hang Seng Index constituents
     "nyse": "america",
+    "cme_mini": "futures",
+    "cme": "futures",
+    "cbot": "futures",
+    "cboe": "cfd",
+    "sp": "cfd",
+    "tvc": "cfd",
+    "amex": "america",
+    "tsx": "canada",
+}
+
+EXCHANGE_ASSET_TYPE = {
+    "all": "crypto",
+    "huobi": "crypto",
+    "kucoin": "crypto",
+    "coinbase": "crypto",
+    "gateio": "crypto",
+    "binance": "crypto",
+    "bitfinex": "crypto",
+    "bitget": "crypto",
+    "bybit": "crypto",
+    "okx": "crypto",
+    "bist": "stock",
+    "nasdaq": "stock",
+    "bursa": "stock",
+    "myx": "stock",
+    "klse": "stock",
+    "ace": "stock",
+    "leap": "stock",
+    "hkex": "stock",
+    "hk": "stock",
+    "hsi": "index",
+    "nyse": "stock",
+    "cme_mini": "futures",
+    "cme": "futures",
+    "cbot": "futures",
+    "cboe": "index",
+    "sp": "index",
+    "tvc": "index",
+    "amex": "etf",
+    "tsx": "stock",
 }
 
 # Get absolute path to coinlist directory relative to this module
@@ -51,3 +91,14 @@ def sanitize_exchange(ex: str, default: str = "kucoin") -> str:
         return default
     exs = ex.strip().lower()
     return exs if exs in EXCHANGE_SCREENER else default
+
+
+def get_asset_type(exchange: str) -> str:
+    if not exchange:
+        return "crypto"
+    exs = exchange.strip().lower()
+    return EXCHANGE_ASSET_TYPE.get(exs, "crypto")
+
+
+def is_crypto_exchange(exchange: str) -> bool:
+    return get_asset_type(exchange) == "crypto"
