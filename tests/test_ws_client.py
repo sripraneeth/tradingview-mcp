@@ -131,13 +131,59 @@ class TestParseTimescaleUpdate:
 
 class TestTimeframeMap:
     def test_all_timeframes_mapped(self) -> None:
-        expected = {"5m", "15m", "1h", "4h", "1D", "1W", "1M"}
+        expected = {"1m", "5m", "15m", "30m", "1h", "4h", "1D", "1W", "1M"}
         assert set(TV_TIMEFRAME_MAP.keys()) == expected
 
     def test_minute_timeframes(self) -> None:
+        assert TV_TIMEFRAME_MAP["1m"] == "1"
         assert TV_TIMEFRAME_MAP["5m"] == "5"
         assert TV_TIMEFRAME_MAP["15m"] == "15"
+        assert TV_TIMEFRAME_MAP["30m"] == "30"
 
     def test_hour_timeframes(self) -> None:
         assert TV_TIMEFRAME_MAP["1h"] == "60"
         assert TV_TIMEFRAME_MAP["4h"] == "240"
+
+
+class TestGetSeriesRequestIds:
+    def test_uses_unique_series_and_symbol_refs_per_call(self) -> None:
+        from tradingview_mcp.core.services import ws_client
+
+        client = ws_client.TVWebSocketClient()
+        client._connected = True
+        client._chart_session = "cs_test"
+
+        class FakeWS:
+            def __init__(self) -> None:
+                self.sent = []
+            def send(self, payload: str) -> None:
+                self.sent.append(payload)
+            def settimeout(self, _t: float) -> None:
+                return None
+            def recv(self) -> str:
+                msg = json.dumps({"m": "series_completed", "p": ["cs_test", "x"]})
+                return f"~m~{len(msg)}~m~{msg}"
+
+        fake_ws = FakeWS()
+        client._ws = fake_ws
+
+        # Make token deterministic for assertion
+        old_choices = ws_client.random.choices
+        ws_client.random.choices = lambda seq, k: list("abc123")  # type: ignore[assignment]
+        try:
+            client.get_series("CME_MINI:ES1!", "5", count=10, timeout=0.2)
+        finally:
+            ws_client.random.choices = old_choices
+
+        sent_decoded = []
+        for framed in fake_ws.sent:
+            decoded = ws_client.decode_messages(framed)
+            sent_decoded.extend(decoded)
+
+        payloads = [json.loads(x) for x in sent_decoded]
+        resolve_payload = next(p for p in payloads if p["m"] == "resolve_symbol")
+        create_payload = next(p for p in payloads if p["m"] == "create_series")
+
+        assert resolve_payload["p"][1] == "sds_sym_abc123"
+        assert create_payload["p"][1] == "sds_abc123"
+        assert create_payload["p"][3] == "sds_sym_abc123"

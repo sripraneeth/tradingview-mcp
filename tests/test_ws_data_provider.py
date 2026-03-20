@@ -124,3 +124,15 @@ class TestWSDataProvider:
         assert isinstance(result, dict)
         assert "prior_day_high" in result
         assert result["prior_day_high"] == 6695.0
+
+    def test_get_bars_rejects_empty_series(self) -> None:
+        provider = WSDataProvider()
+        mock_client = MagicMock()
+        mock_client.connected = True
+        mock_client.get_series.return_value = []
+        provider._client = mock_client
+        provider._ensure_connected = lambda _sid: "forced reconnect failure"  # type: ignore[method-assign]
+
+        result = provider.get_bars("ES1!", "CME_MINI", "15m", count=100, session_id="")
+        assert isinstance(result, dict)
+        assert "error" in result

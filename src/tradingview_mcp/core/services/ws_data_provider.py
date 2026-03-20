@@ -16,7 +16,7 @@ from tradingview_mcp.core.services.level_calc import compute_session_levels
 logger = logging.getLogger(__name__)
 
 _CACHE_TTL_SECONDS = 30
-_RETRY_DELAY_SECONDS = 5
+_RETRY_DELAY_SECONDS = 1
 
 
 def _format_ws_symbol(symbol: str, exchange: str) -> str:
@@ -97,6 +97,15 @@ class WSDataProvider:
         if err:
             return {"error": err}
 
+        # For the real TV client, reset chart session per uncached request.
+        # Long-lived sessions can intermittently stall across sequential calls.
+        if isinstance(self._client, TVWebSocketClient) and self._client.connected:
+            self._client.disconnect()
+            self._client = TVWebSocketClient()
+            err = self._ensure_connected(session_id)
+            if err:
+                return {"error": err}
+
         for attempt in range(2):
             try:
                 bars = self._client.get_series(
@@ -104,13 +113,38 @@ class WSDataProvider:
                     timeframe_tv=tf_tv,
                     count=count,
                 )
+                if len(bars) == 0:
+                    # Symbol aliases: SPX is often available as SP:SPX, not CBOE:SPX.
+                    alt_symbols: List[str] = []
+                    if full_symbol == "CBOE:SPX":
+                        alt_symbols = ["SP:SPX", "TVC:SPX"]
+
+                    for alt in alt_symbols:
+                        try:
+                            bars = self._client.get_series(
+                                full_symbol=alt,
+                                timeframe_tv=tf_tv,
+                                count=count,
+                            )
+                            if len(bars) > 0:
+                                full_symbol = alt
+                                cache_key = (full_symbol, tf_tv)
+                                break
+                        except Exception:
+                            continue
+
+                if len(bars) == 0:
+                    raise TimeoutError(f"No bar data returned for {full_symbol}")
+
                 self._cache[cache_key] = (time.monotonic(), bars)
                 return bars
             except (ConnectionError, TimeoutError) as exc:
                 logger.warning("Attempt %d failed for %s: %s", attempt + 1, full_symbol, exc)
                 if attempt == 0:
-                    # Reconnect and retry once
+                    # Recreate client/session and retry once. Reusing the same
+                    # chart session can intermittently stall on repeated calls.
                     self._client.disconnect()
+                    self._client = TVWebSocketClient()
                     err = self._ensure_connected(session_id)
                     if err:
                         return {"error": err}

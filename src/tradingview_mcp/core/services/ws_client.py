@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 TV_WS_URL = "wss://data.tradingview.com/socket.io/websocket?type=chart"
 
 TV_TIMEFRAME_MAP: Dict[str, str] = {
+    "1m": "1",
     "5m": "5",
     "15m": "15",
+    "30m": "30",
     "1h": "60",
     "4h": "240",
     "1D": "1D",
@@ -28,7 +30,7 @@ TV_TIMEFRAME_MAP: Dict[str, str] = {
 }
 
 _WS_CONNECT_TIMEOUT = 10
-_WS_RECV_TIMEOUT = 30
+_WS_RECV_TIMEOUT = 20
 
 
 def encode_message(payload: str) -> str:
@@ -211,7 +213,44 @@ class TVWebSocketClient:
         if not self.connected:
             raise ConnectionError("WebSocket is not connected")
 
-        series_id = "sds_1"
+        # Use per-request IDs to avoid clashes on long-lived chart sessions.
+        token = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+        symbol_ref = f"sds_sym_{token}"
+        series_id = f"sds_{token}"
+
+        # Quote session improves delivery consistency for some symbols/timeframes.
+        quote_session = generate_session_id("qs")
+        self._send_raw(_build_message("quote_create_session", [quote_session]))
+        self._send_raw(
+            _build_message(
+                "quote_set_fields",
+                [
+                    quote_session,
+                    "ch",
+                    "chp",
+                    "current_session",
+                    "description",
+                    "exchange",
+                    "is_tradable",
+                    "lp",
+                    "lp_time",
+                    "minmov",
+                    "minmove2",
+                    "pricescale",
+                    "pro_name",
+                    "short_name",
+                    "type",
+                    "volume",
+                ],
+            )
+        )
+        self._send_raw(
+            _build_message(
+                "quote_add_symbols",
+                [quote_session, full_symbol, {"flags": ["force_permission"]}],
+            )
+        )
+        self._send_raw(_build_message("quote_fast_symbols", [quote_session, full_symbol]))
 
         # Resolve symbol
         self._send_raw(
@@ -219,7 +258,7 @@ class TVWebSocketClient:
                 "resolve_symbol",
                 [
                     self._chart_session,
-                    "sds_sym_1",
+                    symbol_ref,
                     f'={{"symbol":"{full_symbol}","adjustment":"splits"}}',
                 ],
             )
@@ -233,7 +272,7 @@ class TVWebSocketClient:
                     self._chart_session,
                     series_id,
                     "s1",
-                    "sds_sym_1",
+                    symbol_ref,
                     timeframe_tv,
                     count,
                 ],
@@ -274,10 +313,13 @@ class TVWebSocketClient:
                     if msg.get("m") == "timescale_update":
                         bars = parse_timescale_update(msg)
                         all_bars.extend(bars)
+                        if len(all_bars) >= count:
+                            # Fast path: we already have enough bars.
+                            return all_bars[-count:]
 
                     if msg.get("m") == "series_completed":
                         # Data is complete
-                        return all_bars
+                        return all_bars[-count:] if len(all_bars) > count else all_bars
 
         if all_bars:
             return all_bars
